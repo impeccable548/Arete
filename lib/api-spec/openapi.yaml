@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Arete – Solana Pay invoicing API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: invoices
+    description: Invoice management
 paths:
   /healthz:
     get:
@@ -24,6 +26,108 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List all invoices
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Create a new invoice and generate a Solana Pay link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created invoice with Solana Pay URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /invoices/stats:
+    get:
+      operationId: getInvoiceStats
+      tags: [invoices]
+      summary: Get dashboard stats (totals, paid vs pending)
+      responses:
+        "200":
+          description: Aggregated invoice statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceStats"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get a single invoice by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Invoice record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /invoices/{id}/watch:
+    post:
+      operationId: watchInvoice
+      tags: [invoices]
+      summary: Trigger on-chain payment detection for this invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated invoice (may now be paid)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +138,81 @@ components:
       required:
         - status
 
+    Invoice:
+      type: object
+      required:
+        - id
+        - clientName
+        - amountUsdc
+        - recipientWallet
+        - referenceId
+        - status
+        - solanaPayUrl
+        - createdAt
+      properties:
+        id:
+          type: string
+        clientName:
+          type: string
+        amountUsdc:
+          type: number
+        recipientWallet:
+          type: string
+        referenceId:
+          type: string
+        status:
+          type: string
+          enum: [pending, paid]
+        solanaPayUrl:
+          type: string
+        txSignature:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        paidAt:
+          type: ["string", "null"]
+
+    InvoiceInput:
+      type: object
+      required:
+        - clientName
+        - amountUsdc
+        - recipientWallet
+      properties:
+        clientName:
+          type: string
+          minLength: 1
+        amountUsdc:
+          type: number
+          minimum: 0.01
+        recipientWallet:
+          type: string
+          minLength: 32
+
+    InvoiceStats:
+      type: object
+      required:
+        - totalInvoices
+        - paidInvoices
+        - pendingInvoices
+        - totalPaidUsdc
+        - totalPendingUsdc
+      properties:
+        totalInvoices:
+          type: integer
+        paidInvoices:
+          type: integer
+        pendingInvoices:
+          type: integer
+        totalPaidUsdc:
+          type: number
+        totalPendingUsdc:
+          type: number
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string

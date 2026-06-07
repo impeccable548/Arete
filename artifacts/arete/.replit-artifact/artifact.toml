@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Arete"
+version = "1.0.0"
+id = "artifacts/arete"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22980
+
+[services.development]
+run = "pnpm --filter @workspace/arete run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/arete", "run", "build" ]
+publicDir = "artifacts/arete/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22980"
+BASE_PATH = "/"
