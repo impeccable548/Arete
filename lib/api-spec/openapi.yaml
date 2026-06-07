@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Sign In With Solana authentication
   - name: invoices
     description: Invoice management
 paths:
@@ -18,7 +20,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -27,11 +28,89 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /auth/nonce:
+    get:
+      operationId: getNonce
+      tags: [auth]
+      summary: Get a one-time nonce for wallet signing
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Nonce to sign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NonceResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify:
+    post:
+      operationId: verifyWallet
+      tags: [auth]
+      summary: Verify wallet signature and issue session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletVerifyInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated wallet
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Clear session
+      responses:
+        "204":
+          description: Logged out
+
   /invoices:
     get:
       operationId: listInvoices
       tags: [invoices]
-      summary: List all invoices
+      summary: List invoices for the authenticated wallet
       responses:
         "200":
           description: List of invoices
@@ -64,12 +143,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /invoices/stats:
     get:
       operationId: getInvoiceStats
       tags: [invoices]
-      summary: Get dashboard stats (totals, paid vs pending)
+      summary: Dashboard stats for the authenticated wallet
       responses:
         "200":
           description: Aggregated invoice statistics
@@ -82,7 +167,7 @@ paths:
     get:
       operationId: getInvoice
       tags: [invoices]
-      summary: Get a single invoice by ID
+      summary: Get a single invoice by ID (public)
       parameters:
         - name: id
           in: path
@@ -138,6 +223,36 @@ components:
       required:
         - status
 
+    NonceResponse:
+      type: object
+      required:
+        - nonce
+      properties:
+        nonce:
+          type: string
+
+    WalletVerifyInput:
+      type: object
+      required:
+        - wallet
+        - signature
+        - nonce
+      properties:
+        wallet:
+          type: string
+        signature:
+          type: string
+        nonce:
+          type: string
+
+    AuthUser:
+      type: object
+      required:
+        - wallet
+      properties:
+        wallet:
+          type: string
+
     Invoice:
       type: object
       required:
@@ -149,6 +264,7 @@ components:
         - status
         - solanaPayUrl
         - createdAt
+        - ownerWallet
       properties:
         id:
           type: string
@@ -159,6 +275,8 @@ components:
         recipientWallet:
           type: string
         referenceId:
+          type: string
+        ownerWallet:
           type: string
         status:
           type: string

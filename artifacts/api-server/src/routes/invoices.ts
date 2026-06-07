@@ -5,6 +5,7 @@ import {
   detectPayment,
   generateReferenceId,
 } from "../lib/solana-pay";
+import { requireAuth } from "../middlewares/auth";
 import {
   CreateInvoiceBody,
   GetInvoiceParams,
@@ -13,10 +14,11 @@ import {
 
 const router: IRouter = Router();
 
-router.get("/invoices", async (req, res): Promise<void> => {
+router.get("/invoices", requireAuth, async (req, res): Promise<void> => {
   const { data, error } = await supabase
     .from("invoices")
     .select("*")
+    .eq("owner_wallet", req.wallet!)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -28,7 +30,7 @@ router.get("/invoices", async (req, res): Promise<void> => {
   res.json((data ?? []).map(toInvoice));
 });
 
-router.post("/invoices", async (req, res): Promise<void> => {
+router.post("/invoices", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateInvoiceBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -36,7 +38,6 @@ router.post("/invoices", async (req, res): Promise<void> => {
   }
 
   const { clientName, amountUsdc, recipientWallet } = parsed.data;
-
   const referenceId = generateReferenceId();
   const solanaPayUrl = buildSolanaPayUrl({
     recipient: recipientWallet,
@@ -54,6 +55,7 @@ router.post("/invoices", async (req, res): Promise<void> => {
       reference_id: referenceId,
       solana_pay_url: solanaPayUrl,
       status: "pending",
+      owner_wallet: req.wallet!,
     })
     .select()
     .single();
@@ -67,8 +69,11 @@ router.post("/invoices", async (req, res): Promise<void> => {
   res.status(201).json(toInvoice(data));
 });
 
-router.get("/invoices/stats", async (req, res): Promise<void> => {
-  const { data, error } = await supabase.from("invoices").select("*");
+router.get("/invoices/stats", requireAuth, async (req, res): Promise<void> => {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("owner_wallet", req.wallet!);
 
   if (error) {
     req.log.error({ error }, "Failed to fetch invoice stats");
@@ -169,6 +174,7 @@ function toInvoice(row: Record<string, unknown>) {
     amountUsdc: Number(row.amount_usdc),
     recipientWallet: row.recipient_wallet,
     referenceId: row.reference_id,
+    ownerWallet: row.owner_wallet,
     status: row.status,
     solanaPayUrl: row.solana_pay_url,
     txSignature: row.tx_signature ?? null,

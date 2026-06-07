@@ -13,6 +13,7 @@ export interface Invoice {
   amountUsdc: number;
   recipientWallet: string;
   referenceId: string;
+  ownerWallet: string;
   status: InvoiceStatus;
   solanaPayUrl: string;
   /** @nullable */

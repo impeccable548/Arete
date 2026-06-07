@@ -1,5 +1,76 @@
 import { Link, useLocation } from "wouter";
-import { Boxes, LayoutDashboard, Plus, Settings } from "lucide-react";
+import { Boxes, LayoutDashboard, Plus, Wallet, LogOut, AlertCircle, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+function truncateWallet(addr: string): string {
+  return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+}
+
+function WalletPanel() {
+  const { wallet, isAuthenticated, isLoading, walletDetected, signIn, signOut, error } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="font-mono text-xs">Checking session…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && wallet) {
+    return (
+      <div className="p-4 border-t border-border">
+        <div className="px-3 py-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="font-mono text-xs text-primary uppercase tracking-wider">Connected</span>
+          </div>
+          <div className="font-mono text-xs text-muted-foreground">{truncateWallet(wallet)}</div>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+          >
+            <LogOut className="w-3 h-3" />
+            Disconnect
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 border-t border-border space-y-2">
+      {error && (
+        <div className="flex items-start gap-2 px-3 py-2 text-xs text-destructive bg-destructive/10 border border-destructive/20">
+          <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+      {!walletDetected ? (
+        <a
+          href="https://phantom.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Wallet className="w-4 h-4" />
+          Install Phantom
+        </a>
+      ) : (
+        <button
+          onClick={signIn}
+          className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+        >
+          <Wallet className="w-4 h-4" />
+          Connect Wallet
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -33,12 +104,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
         </div>
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer border-l-2 border-transparent">
-            <Settings className="w-4 h-4" />
-            Settings
-          </div>
-        </div>
+        <WalletPanel />
       </aside>
       <main className="flex-1 flex flex-col">
         <div className="h-16 border-b border-border bg-background/95 backdrop-blur flex items-center px-8 shrink-0">

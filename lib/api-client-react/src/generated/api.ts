@@ -20,11 +20,15 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AuthUser,
   ErrorResponse,
+  GetNonceParams,
   HealthStatus,
   Invoice,
   InvoiceInput,
-  InvoiceStats
+  InvoiceStats,
+  NonceResponse,
+  WalletVerifyInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -48,7 +52,6 @@ export const getHealthCheckUrl = () => {
 }
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const healthCheck = async ( options?: RequestInit): Promise<HealthStatus> => {
@@ -117,6 +120,308 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+export const getGetNonceUrl = (params: GetNonceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/auth/nonce?${stringifiedParams}` : `/api/auth/nonce`
+}
+
+/**
+ * @summary Get a one-time nonce for wallet signing
+ */
+export const getNonce = async (params: GetNonceParams, options?: RequestInit): Promise<NonceResponse> => {
+
+  return customFetch<NonceResponse>(getGetNonceUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNonceQueryKey = (params?: GetNonceParams,) => {
+    return [
+    `/api/auth/nonce`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetNonceQueryOptions = <TData = Awaited<ReturnType<typeof getNonce>>, TError = ErrorType<ErrorResponse>>(params: GetNonceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNonce>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNonceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNonce>>> = ({ signal }) => getNonce(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNonce>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNonceQueryResult = NonNullable<Awaited<ReturnType<typeof getNonce>>>
+export type GetNonceQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a one-time nonce for wallet signing
+ */
+
+export function useGetNonce<TData = Awaited<ReturnType<typeof getNonce>>, TError = ErrorType<ErrorResponse>>(
+ params: GetNonceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNonce>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNonceQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getVerifyWalletUrl = () => {
+
+
+
+
+  return `/api/auth/verify`
+}
+
+/**
+ * @summary Verify wallet signature and issue session
+ */
+export const verifyWallet = async (walletVerifyInput: WalletVerifyInput, options?: RequestInit): Promise<AuthUser> => {
+
+  return customFetch<AuthUser>(getVerifyWalletUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      walletVerifyInput,)
+  }
+);}
+
+
+
+
+export const getVerifyWalletMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyWallet>>, TError,{data: BodyType<WalletVerifyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyWallet>>, TError,{data: BodyType<WalletVerifyInput>}, TContext> => {
+
+const mutationKey = ['verifyWallet'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyWallet>>, {data: BodyType<WalletVerifyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyWallet(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyWalletMutationResult = NonNullable<Awaited<ReturnType<typeof verifyWallet>>>
+    export type VerifyWalletMutationBody = BodyType<WalletVerifyInput>
+    export type VerifyWalletMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify wallet signature and issue session
+ */
+export const useVerifyWallet = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyWallet>>, TError,{data: BodyType<WalletVerifyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyWallet>>,
+        TError,
+        {data: BodyType<WalletVerifyInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyWalletMutationOptions(options));
+    }
+
+export const getGetMeUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * @summary Get current authenticated wallet
+ */
+export const getMe = async ( options?: RequestInit): Promise<AuthUser> => {
+
+  return customFetch<AuthUser>(getGetMeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMeQueryKey = () => {
+    return [
+    `/api/auth/me`
+    ] as const;
+    }
+
+
+export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMe>>> = ({ signal }) => getMe({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
+export type GetMeQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get current authenticated wallet
+ */
+
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Clear session
+ */
+export const logout = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
+
+const mutationKey = ['logout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+
+
+          return  logout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
+
+    export type LogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear session
+ */
+export const useLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutMutationOptions(options));
+    }
+
 export const getListInvoicesUrl = () => {
 
 
@@ -126,7 +431,7 @@ export const getListInvoicesUrl = () => {
 }
 
 /**
- * @summary List all invoices
+ * @summary List invoices for the authenticated wallet
  */
 export const listInvoices = async ( options?: RequestInit): Promise<Invoice[]> => {
 
@@ -173,7 +478,7 @@ export type ListInvoicesQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List all invoices
+ * @summary List invoices for the authenticated wallet
  */
 
 export function useListInvoices<TData = Awaited<ReturnType<typeof listInvoices>>, TError = ErrorType<unknown>>(
@@ -274,7 +579,7 @@ export const getGetInvoiceStatsUrl = () => {
 }
 
 /**
- * @summary Get dashboard stats (totals, paid vs pending)
+ * @summary Dashboard stats for the authenticated wallet
  */
 export const getInvoiceStats = async ( options?: RequestInit): Promise<InvoiceStats> => {
 
@@ -321,7 +626,7 @@ export type GetInvoiceStatsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Get dashboard stats (totals, paid vs pending)
+ * @summary Dashboard stats for the authenticated wallet
  */
 
 export function useGetInvoiceStats<TData = Awaited<ReturnType<typeof getInvoiceStats>>, TError = ErrorType<unknown>>(
@@ -351,7 +656,7 @@ export const getGetInvoiceUrl = (id: string,) => {
 }
 
 /**
- * @summary Get a single invoice by ID
+ * @summary Get a single invoice by ID (public)
  */
 export const getInvoice = async (id: string, options?: RequestInit): Promise<Invoice> => {
 
@@ -398,7 +703,7 @@ export type GetInvoiceQueryError = ErrorType<ErrorResponse>
 
 
 /**
- * @summary Get a single invoice by ID
+ * @summary Get a single invoice by ID (public)
  */
 
 export function useGetInvoice<TData = Awaited<ReturnType<typeof getInvoice>>, TError = ErrorType<ErrorResponse>>(

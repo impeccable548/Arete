@@ -11,7 +11,7 @@ import { useState } from "react";
 export default function InvoiceDetail() {
   const params = useParams();
   const id = params.id as string;
-  const { data: invoice, isLoading } = useGetInvoice(id, { query: { enabled: !!id } });
+  const { data: invoice, isLoading } = useGetInvoice(id);
   const watchInvoice = useWatchInvoice();
   const queryClient = useQueryClient();
   const { toast } = useToast();

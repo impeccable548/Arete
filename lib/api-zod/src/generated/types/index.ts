@@ -6,9 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authUser';
 export * from './errorResponse';
+export * from './getNonceParams';
 export * from './healthStatus';
 export * from './invoice';
 export * from './invoiceInput';
 export * from './invoiceStats';
 export * from './invoiceStatus';
+export * from './nonceResponse';
+export * from './walletVerifyInput';

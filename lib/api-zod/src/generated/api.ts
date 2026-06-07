@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -18,7 +17,41 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary List all invoices
+ * @summary Get a one-time nonce for wallet signing
+ */
+export const GetNonceQueryParams = zod.object({
+  "wallet": zod.coerce.string()
+})
+
+export const GetNonceResponse = zod.object({
+  "nonce": zod.string()
+})
+
+
+/**
+ * @summary Verify wallet signature and issue session
+ */
+export const VerifyWalletBody = zod.object({
+  "wallet": zod.string(),
+  "signature": zod.string(),
+  "nonce": zod.string()
+})
+
+export const VerifyWalletResponse = zod.object({
+  "wallet": zod.string()
+})
+
+
+/**
+ * @summary Get current authenticated wallet
+ */
+export const GetMeResponse = zod.object({
+  "wallet": zod.string()
+})
+
+
+/**
+ * @summary List invoices for the authenticated wallet
  */
 export const ListInvoicesResponseItem = zod.object({
   "id": zod.string(),
@@ -26,6 +59,7 @@ export const ListInvoicesResponseItem = zod.object({
   "amountUsdc": zod.number(),
   "recipientWallet": zod.string(),
   "referenceId": zod.string(),
+  "ownerWallet": zod.string(),
   "status": zod.enum(['pending', 'paid']),
   "solanaPayUrl": zod.string(),
   "txSignature": zod.string().nullish(),
@@ -53,7 +87,7 @@ export const CreateInvoiceBody = zod.object({
 
 
 /**
- * @summary Get dashboard stats (totals, paid vs pending)
+ * @summary Dashboard stats for the authenticated wallet
  */
 export const GetInvoiceStatsResponse = zod.object({
   "totalInvoices": zod.number(),
@@ -65,7 +99,7 @@ export const GetInvoiceStatsResponse = zod.object({
 
 
 /**
- * @summary Get a single invoice by ID
+ * @summary Get a single invoice by ID (public)
  */
 export const GetInvoiceParams = zod.object({
   "id": zod.coerce.string()
@@ -77,6 +111,7 @@ export const GetInvoiceResponse = zod.object({
   "amountUsdc": zod.number(),
   "recipientWallet": zod.string(),
   "referenceId": zod.string(),
+  "ownerWallet": zod.string(),
   "status": zod.enum(['pending', 'paid']),
   "solanaPayUrl": zod.string(),
   "txSignature": zod.string().nullish(),
@@ -98,6 +133,7 @@ export const WatchInvoiceResponse = zod.object({
   "amountUsdc": zod.number(),
   "recipientWallet": zod.string(),
   "referenceId": zod.string(),
+  "ownerWallet": zod.string(),
   "status": zod.enum(['pending', 'paid']),
   "solanaPayUrl": zod.string(),
   "txSignature": zod.string().nullish(),

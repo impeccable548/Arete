@@ -9,6 +9,20 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface NonceResponse {
+  nonce: string;
+}
+
+export interface WalletVerifyInput {
+  wallet: string;
+  signature: string;
+  nonce: string;
+}
+
+export interface AuthUser {
+  wallet: string;
+}
+
 export type InvoiceStatus = typeof InvoiceStatus[keyof typeof InvoiceStatus];
 
 
@@ -23,6 +37,7 @@ export interface Invoice {
   amountUsdc: number;
   recipientWallet: string;
   referenceId: string;
+  ownerWallet: string;
   status: InvoiceStatus;
   solanaPayUrl: string;
   /** @nullable */
@@ -52,4 +67,8 @@ export interface InvoiceStats {
 export interface ErrorResponse {
   error: string;
 }
+
+export type GetNonceParams = {
+wallet: string;
+};
 
