@@ -7,7 +7,7 @@ function truncateWallet(addr: string): string {
 }
 
 function WalletPanel() {
-  const { wallet, isAuthenticated, isLoading, walletDetected, signIn, signOut, error } = useAuth();
+  const { wallet, isAuthenticated, isLoading, signIn, signOut, error } = useAuth();
 
   if (isLoading) {
     return (
@@ -46,28 +46,38 @@ function WalletPanel() {
       {error && (
         <div className="flex items-start gap-2 px-3 py-2 text-xs text-destructive bg-destructive/10 border border-destructive/20">
           <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
-          <span>{error}</span>
+          <span className="leading-relaxed">{error}</span>
         </div>
       )}
-      {!walletDetected ? (
+
+      {/* Always show Connect Wallet — detection happens at click time */}
+      <button
+        onClick={signIn}
+        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+      >
+        <Wallet className="w-4 h-4 shrink-0" />
+        Connect Wallet
+      </button>
+
+      {/* Download links shown below the connect button */}
+      <div className="flex gap-3 px-3 pt-1">
         <a
-          href="https://phantom.app"
+          href="https://phantom.app/download"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
         >
-          <Wallet className="w-4 h-4" />
-          Install Phantom
+          Phantom
         </a>
-      ) : (
-        <button
-          onClick={signIn}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+        <a
+          href="https://solflare.com/download"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
         >
-          <Wallet className="w-4 h-4" />
-          Connect Wallet
-        </button>
-      )}
+          Solflare
+        </a>
+      </div>
     </div>
   );
 }
@@ -86,7 +96,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/">
             <div
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                location === "/" ? "bg-secondary text-primary border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-l-2 border-transparent"
+                location === "/"
+                  ? "bg-secondary text-primary border-l-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-l-2 border-transparent"
               }`}
             >
               <LayoutDashboard className="w-4 h-4" />
@@ -96,7 +108,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/invoices/new">
             <div
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                location === "/invoices/new" ? "bg-secondary text-primary border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-l-2 border-transparent"
+                location === "/invoices/new"
+                  ? "bg-secondary text-primary border-l-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-l-2 border-transparent"
               }`}
             >
               <Plus className="w-4 h-4" />

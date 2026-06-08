@@ -1,11 +1,11 @@
 import { useListInvoices, useGetInvoiceStats } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { ArrowUpRight, Plus, Loader2, Wallet } from "lucide-react";
+import { ArrowUpRight, Plus, Loader2, Wallet, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 
 function ConnectPrompt() {
-  const { signIn, isLoading, walletDetected } = useAuth();
+  const { signIn, isLoading, error } = useAuth();
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6">
       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -17,25 +17,26 @@ function ConnectPrompt() {
           Sign in with your Solana wallet to create invoices and track on-chain payments.
         </p>
       </div>
-      {walletDetected ? (
-        <button
-          onClick={signIn}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
-        >
-          <Wallet className="w-4 h-4" />
-          Connect Wallet
-        </button>
-      ) : (
-        <a
-          href="https://phantom.app"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
-        >
-          Get Phantom Wallet
-        </a>
+      {error && (
+        <div className="flex items-start gap-2 px-4 py-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 max-w-sm text-left">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </div>
       )}
+      <button
+        onClick={signIn}
+        disabled={isLoading}
+        className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+      >
+        <Wallet className="w-4 h-4" />
+        Connect Wallet
+      </button>
+      <p className="text-xs text-muted-foreground">
+        Don't have a wallet?{" "}
+        <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Phantom</a>
+        {" or "}
+        <a href="https://solflare.com/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Solflare</a>
+      </p>
     </div>
   );
 }

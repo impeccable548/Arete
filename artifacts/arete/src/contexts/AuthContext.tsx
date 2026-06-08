@@ -25,7 +25,7 @@ declare global {
 }
 
 function getProvider(): SolanaProvider | null {
-  if (window.phantom?.solana?.isConnected !== undefined) return window.phantom.solana;
+  if (window.phantom?.solana) return window.phantom.solana;
   if (window.solflare?.isSolflare) return window.solflare;
   return null;
 }
@@ -56,28 +56,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const detected = !!(window.phantom?.solana || window.solflare?.isSolflare);
-    setWalletDetected(detected);
+    // Give wallet extensions ~300ms to inject into the page
+    const detectAndRestore = () => {
+      setWalletDetected(!!(window.phantom?.solana || window.solflare?.isSolflare));
 
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.wallet) setWallet(data.wallet);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
+      fetch("/api/auth/me", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.wallet) setWallet(data.wallet);
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    };
+
+    const timer = setTimeout(detectAndRestore, 300);
+    return () => clearTimeout(timer);
   }, []);
 
   const signIn = useCallback(async () => {
     setError(null);
-    const provider = getProvider();
-    if (!provider) {
-      setError("No Solana wallet found. Install Phantom or Solflare.");
-      return;
-    }
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
+      // Re-check at click time — extension may have loaded after mount
+      const provider = getProvider();
+      if (!provider) {
+        setError(
+          "No Solana wallet detected. Open this page inside Phantom's browser, or install the Phantom / Solflare extension.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
       const { publicKey } = await provider.connect();
       const pubkeyStr = publicKey.toBase58();
 
@@ -90,7 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const message = `Sign in to Arete\nNonce: ${nonce}`;
       const messageBytes = new TextEncoder().encode(message);
       const result = await provider.signMessage(messageBytes, "utf8");
-      const sigBytes = result instanceof Uint8Array ? result : (result as { signature: Uint8Array }).signature;
+      const sigBytes =
+        result instanceof Uint8Array
+          ? result
+          : (result as { signature: Uint8Array }).signature;
       const signatureHex = toHex(sigBytes);
 
       const verifyRes = await fetch("/api/auth/verify", {
@@ -107,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await verifyRes.json();
       setWallet(data.wallet);
+      setWalletDetected(true);
       queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Sign in failed";
