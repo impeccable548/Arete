@@ -79,7 +79,7 @@ router.get("/auth/me", requireAuth, (req, res): void => {
   res.json({ wallet: req.wallet });
 });
 
-router.post("/auth/logout", requireAuth, async (req, res): Promise<void> => {
+router.post("/auth/logout", (_req, res): void => {
   res.clearCookie(COOKIE_NAME, { path: "/" });
   res.status(204).send();
 });

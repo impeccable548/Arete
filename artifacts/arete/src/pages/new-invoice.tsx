@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required"),
@@ -19,6 +20,7 @@ export default function NewInvoice() {
   const [, setLocation] = useLocation();
   const { isAuthenticated, isLoading: authLoading, signIn, walletDetected } = useAuth();
   const createInvoice = useCreateInvoice();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,6 +37,13 @@ export default function NewInvoice() {
       {
         onSuccess: (invoice) => {
           setLocation(`/invoices/${invoice.id}`);
+        },
+        onError: (err) => {
+          toast({
+            title: "Failed to create invoice",
+            description: err.message ?? "Something went wrong. Please try again.",
+            variant: "destructive",
+          });
         },
       },
     );
@@ -63,21 +72,16 @@ export default function NewInvoice() {
             <h3 className="text-lg font-semibold mb-2">Wallet required</h3>
             <p className="text-sm text-muted-foreground">Connect your Solana wallet to create invoices.</p>
           </div>
-          {walletDetected ? (
-            <Button onClick={signIn} className="rounded-none h-11 px-8 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Wallet className="w-4 h-4 mr-2" />
-              Connect Wallet
-            </Button>
-          ) : (
-            <a
-              href="https://phantom.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 h-11 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm"
-            >
-              Get Phantom Wallet
-            </a>
-          )}
+          <Button onClick={signIn} className="rounded-none h-11 px-8 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Wallet className="w-4 h-4 mr-2" />
+            Connect Wallet
+          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Don't have a wallet?{" "}
+            <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Phantom</a>
+            {" or "}
+            <a href="https://solflare.com/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Solflare</a>
+          </p>
         </div>
       </div>
     );
