@@ -206,4 +206,37 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* ── Landing page animations ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-14px); }
+  }
+  @keyframes float-delayed {
+    0%, 100% { transform: translateY(0px) rotate(-2deg); }
+    50%       { transform: translateY(-10px) rotate(-2deg); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .landing-float {
+    animation: float 5s ease-in-out infinite;
+  }
+  .landing-float-delayed {
+    animation: float-delayed 4s ease-in-out 0.8s infinite;
+  }
+  .landing-fade-up {
+    animation: fade-up 0.7s ease both;
+  }
+  .landing-fade-up-delayed {
+    animation: fade-up 0.7s ease 0.25s both;
+  }
+
+  /* Subtle dot-grid background for hero */
+  .landing-grid-bg {
+    background-image: radial-gradient(circle, hsl(155 90% 51% / 0.15) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
 }

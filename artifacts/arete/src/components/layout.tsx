@@ -93,10 +93,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <span className="font-mono font-bold text-lg tracking-wider text-foreground">ARETE</span>
         </div>
         <div className="p-4 flex-1 flex flex-col gap-2">
-          <Link href="/">
+          <Link href="/dashboard">
             <div
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                location === "/"
+                location === "/dashboard"
                   ? "bg-secondary text-primary border-l-2 border-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-l-2 border-transparent"
               }`}
@@ -123,7 +123,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 flex flex-col">
         <div className="h-16 border-b border-border bg-background/95 backdrop-blur flex items-center px-8 shrink-0">
           <div className="text-sm font-mono text-muted-foreground">
-            {location === "/" && "DASHBOARD / OVERVIEW"}
+            {location === "/dashboard" && "DASHBOARD / OVERVIEW"}
             {location === "/invoices/new" && "INVOICES / NEW"}
             {location.startsWith("/invoices/") && location !== "/invoices/new" && "INVOICES / DETAILS"}
           </div>

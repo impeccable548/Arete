@@ -2,7 +2,8 @@ import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { logger } from "./logger";
 
 export const DEVNET_RPC = "https://api.devnet.solana.com";
-export const USDC_DEVNET_MINT = "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr";
+// Circle's official devnet USDC — used by spl-token-faucet.com
+export const USDC_DEVNET_MINT = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 
 export function generateReferenceId(): string {
   return Keypair.generate().publicKey.toBase58();

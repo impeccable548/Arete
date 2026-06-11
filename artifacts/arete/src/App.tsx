@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import { Layout } from "@/components/layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import NewInvoice from "@/pages/new-invoice";
 import InvoiceDetail from "@/pages/invoice-detail";
@@ -21,14 +22,25 @@ const queryClient = new QueryClient({
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/invoices/new" component={NewInvoice} />
-        <Route path="/invoices/:id" component={InvoiceDetail} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      <Route path="/" component={Landing} />
+      <Route path="/dashboard">
+        <Layout>
+          <Dashboard />
+        </Layout>
+      </Route>
+      <Route path="/invoices/new">
+        <Layout>
+          <NewInvoice />
+        </Layout>
+      </Route>
+      <Route path="/invoices/:id">
+        <Layout>
+          <InvoiceDetail />
+        </Layout>
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
