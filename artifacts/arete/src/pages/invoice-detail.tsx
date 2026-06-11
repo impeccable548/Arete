@@ -2,7 +2,7 @@ import { useParams } from "wouter";
 import { useGetInvoice, useWatchInvoice, getGetInvoiceQueryKey, getListInvoicesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { Copy, CheckCircle2, Loader2, RefreshCw, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -147,14 +147,23 @@ export default function InvoiceDetail() {
                     includeMargin={false}
                   />
                 </div>
-                <p className="text-sm text-muted-foreground mb-6 text-center">Scan with Phantom or Backpack wallet to pay</p>
+                <p className="text-sm text-muted-foreground mb-4 text-center">Scan with Phantom or Backpack wallet to pay</p>
+
+                {/* Same-device tap-to-pay button */}
+                <a
+                  href={invoice.solanaPayUrl}
+                  className="w-full mb-6 inline-flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+                >
+                  <Wallet className="h-4 w-4" />
+                  Open in Wallet
+                </a>
                 
                 <div className="w-full relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground font-mono">or use link</span>
+                    <span className="bg-card px-2 text-muted-foreground font-mono">or copy link</span>
                   </div>
                 </div>
 
