@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetMeQueryKey } from "@workspace/api-client-react";
+import { getGetMeQueryKey, setAuthTokenGetter } from "@workspace/api-client-react";
 
 type SolanaProvider = {
   connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toBase58: () => string } }>;
@@ -24,6 +24,8 @@ declare global {
   }
 }
 
+const TOKEN_KEY = "arete_token";
+
 function getProvider(): SolanaProvider | null {
   if (window.phantom?.solana) return window.phantom.solana;
   if (window.solflare?.isSolflare) return window.solflare;
@@ -34,6 +36,28 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+function saveToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {}
+  setAuthTokenGetter(() => token);
+}
+
+function clearToken(): void {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {}
+  setAuthTokenGetter(null);
+}
+
+function loadStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 type AuthState = {
@@ -56,21 +80,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Give wallet extensions ~300ms to inject into the page
-    const detectAndRestore = () => {
+    const init = async () => {
+      // Give wallet extensions ~300ms to inject
+      await new Promise((r) => setTimeout(r, 300));
       setWalletDetected(!!(window.phantom?.solana || window.solflare?.isSolflare));
 
-      fetch("/api/auth/me", { credentials: "include" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (data?.wallet) setWallet(data.wallet);
-        })
-        .catch(() => {})
-        .finally(() => setIsLoading(false));
+      // Restore session from localStorage
+      const stored = loadStoredToken();
+      if (stored) {
+        setAuthTokenGetter(() => stored);
+        try {
+          const res = await fetch("/api/auth/me", {
+            headers: { Authorization: `Bearer ${stored}` },
+            credentials: "include",
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setWallet(data.wallet);
+          } else {
+            // Token expired or invalid
+            clearToken();
+          }
+        } catch {
+          clearToken();
+        }
+      }
+
+      setIsLoading(false);
     };
 
-    const timer = setTimeout(detectAndRestore, 300);
-    return () => clearTimeout(timer);
+    init();
   }, []);
 
   const signIn = useCallback(async () => {
@@ -78,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
 
     try {
-      // Re-check at click time — extension may have loaded after mount
       const provider = getProvider();
       if (!provider) {
         setError(
@@ -119,6 +157,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await verifyRes.json();
+
+      // Store token in localStorage and register with customFetch
+      // This makes all React Query hooks send Authorization: Bearer <token>
+      // Works in mobile WebViews where cookies may be blocked
+      saveToken(data.token);
       setWallet(data.wallet);
       setWalletDetected(true);
       queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
@@ -131,8 +174,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   const signOut = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    clearToken();
     setWallet(null);
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     queryClient.clear();
   }, [queryClient]);
 

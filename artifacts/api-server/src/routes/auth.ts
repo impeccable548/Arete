@@ -71,8 +71,13 @@ router.post("/auth/verify", async (req, res): Promise<void> => {
   await supabase.from("nonces").delete().eq("id", nonceRow.id);
 
   const token = signJwt(wallet);
+
+  // Set httpOnly cookie for desktop browsers
   res.cookie(COOKIE_NAME, token, COOKIE_OPTS);
-  res.json({ wallet });
+
+  // Also return the token in the body so mobile WebViews (Phantom browser)
+  // can use localStorage + Authorization: Bearer instead of cookies
+  res.json({ wallet, token });
 });
 
 router.get("/auth/me", requireAuth, (req, res): void => {
