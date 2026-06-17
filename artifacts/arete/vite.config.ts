@@ -17,8 +17,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Maps directly into the src directory of the neighboring api-client-react folder
-      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../api-client-react/src"),
+      // Points to the base package folder so the pnpm workspace mapping handles the resolution
+      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../api-client-react"),
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
