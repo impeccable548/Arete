@@ -17,8 +17,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Steps up two levels out of artifacts/arete, then goes into lib/api-client-react
-      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react"),
+      // Maps directly to the src folder containing index.ts
+      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react/src"),
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
