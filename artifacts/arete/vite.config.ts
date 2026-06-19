@@ -16,13 +16,12 @@ export default defineConfig({
     runtimeErrorOverlay(),
   ],
   resolve: {
-    // Inside artifacts/arete/vite.config.ts -> resolve.alias
-alias: {
-  // Points to the base package folder so the pnpm workspace mapping handles the resolution
-  "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react"),
-  "@": path.resolve(import.meta.dirname, "src"),
-  "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
-},
+    alias: {
+      // Maps cleanly to where the source files are actually living
+      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react/src"),
+      "@": path.resolve(import.meta.dirname, "src"),
+      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+    },
     dedupe: ["react", "react-dom"],
   },
   root: path.resolve(import.meta.dirname),
