@@ -17,8 +17,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Points cleanly to the neighboring folder inside artifacts
-      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../api-client-react"),
+      // Removed the manual folder path alias to let the installed package handle it
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
