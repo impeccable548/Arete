@@ -17,7 +17,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Removed the manual folder path alias to let the installed package handle it
+      // Steps up two levels out of artifacts/arete, then goes into lib/api-client-react
+      "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react"),
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
