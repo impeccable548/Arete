@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import path from "path"; // 🟢 1. MOVED TO THE TOP HERE
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -29,20 +30,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-import path from "path";
+// 🔴 (The mid-file import that was here is gone)
 
 app.use("/api", router);
 
-// --- SERVE VITE FRONTEND (STEP 2) ---
+// --- SERVE VITE FRONTEND (STEP 2 FIXED) ---
 const __dirname = path.resolve();
 const frontendDistPath = path.join(__dirname, "artifacts/arete/dist");
 
 // Serve the static build assets (JS, CSS, images)
 app.use(express.static(frontendDistPath));
 
-// Fallback route: Let Vite's router handle page refreshes
-app.get("*", (req, res) => {
-  // If an API request somehow leaks here, return a clean 404 instead of index.html
+// 🟢 2. CHANGED TO '*any' TO FIX EXPRESS 5 CRASH
+app.get("*any", (req, res) => {
   if (req.url.startsWith("/api")) {
     return res.status(404).json({ error: "API route not found" });
   }
