@@ -34,15 +34,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-// --- SERVE VITE FRONTEND (STEP 2 FIXED) ---
+// --- SERVE VITE FRONTEND (PATH CALIBRATED) ---
 const __dirname = path.resolve();
-const frontendDistPath = path.join(__dirname, "artifacts/arete/dist");
+const frontendDistPath = path.join(__dirname, "../arete/dist");
 
 // Serve the static build assets (JS, CSS, images)
 app.use(express.static(frontendDistPath));
 
-// 🟢 2. CHANGED TO '*any' TO FIX EXPRESS 5 CRASH
+// Express 5 catch-all syntax using '*any'
 app.get("*any", (req, res) => {
+  // If an API request somehow leaks here, return a clean 404 instead of index.html
   if (req.url.startsWith("/api")) {
     return res.status(404).json({ error: "API route not found" });
   }
