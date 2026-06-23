@@ -31,6 +31,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 🔴 (The mid-file import that was here is gone)
+// 🟢 LIGHTWEIGHT CRON PING ENDPOINT
+app.get("/api/ping", (req, res) => {
+  res.status(200).send("pong");
+});
 
 app.use("/api", router);
 
