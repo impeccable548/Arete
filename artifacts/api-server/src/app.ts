@@ -38,21 +38,17 @@ app.get("/api/ping", (req, res) => {
 
 app.use("/api", router);
 
-// --- SERVE VITE FRONTEND (PATH CALIBRATED) ---
+// --- SERVE VITE FRONTEND (EXPRESS 5 REGEX COMPATIBLE) ---
 const __dirname = path.resolve();
 const frontendDistPath = path.join(__dirname, "../arete/dist");
 
 // Serve the static build assets (JS, CSS, images)
 app.use(express.static(frontendDistPath));
 
-// Express 5 catch-all syntax using '*any'
-app.get("*any", (req, res) => {
-  // If an API request somehow leaks here, return a clean 404 instead of index.html
-  if (req.url.startsWith("/api")) {
-    return res.status(404).json({ error: "API route not found" });
-  }
+// RegExp matches any string that does NOT start with /api
+app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.join(frontendDistPath, "index.html"));
 });
-// ------------------------------------
+// --------------------------------------------------------
 
 export default app;
