@@ -2,9 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// Render-safe environmental defaults
 const port = Number(process.env.PORT || 10000);
 const basePath = process.env.BASE_PATH || "/";
 
@@ -13,11 +11,18 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
   ],
+  define: {
+    // 🟢 Inject global variables required by @solana/web3.js and SIWS
+    global: "globalThis",
+    "process.env": {},
+  },
   resolve: {
     alias: {
-      // Maps cleanly to where the source files are actually living
+      // 🟢 Force Node native calls to route to browser polyfills
+      crypto: "crypto-browserify",
+      stream: "stream-browserify",
+      buffer: "buffer",
       "@workspace/api-client-react": path.resolve(import.meta.dirname, "../../lib/api-client-react/src"),
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
@@ -28,6 +33,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   },
   server: {
     port,
