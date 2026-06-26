@@ -26,29 +26,40 @@ app.use(
     },
   }),
 );
-app.use(cors());
+// 🟢 1. PRODUCTION-SAFE CORS WITH CREDENTIALS ENABLED
+app.use(
+  cors({
+    origin: "https://onrender.com",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔴 (The mid-file import that was here is gone)
-// 🟢 LIGHTWEIGHT CRON PING ENDPOINT
+// 🟢 2. LIGHTWEIGHT CRON PING ENDPOINT
 app.get("/api/ping", (req, res) => {
   res.status(200).send("pong");
 });
 
+// 🟢 3. CORE API ROUTER
 app.use("/api", router);
 
-// --- SERVE VITE FRONTEND (EXPRESS 5 REGEX COMPATIBLE) ---
+// --- SERVE VITE FRONTEND (EXPRESS 5 COMPATIBLE STRUCTURING) ---
 const __dirname = path.resolve();
 const frontendDistPath = path.join(__dirname, "../arete/dist");
 
-// Serve the static build assets (JS, CSS, images)
+// Serve the static build assets (JS, CSS, images) FIRST
 app.use(express.static(frontendDistPath));
 
-// RegExp matches any string that does NOT start with /api
-app.get(/^(?!\/api).*$/, (req, res) => {
+// 🟢 4. EXPRESS 5 STANDARD CATCH-ALL FOR WEB PAGES ONLY
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
   res.sendFile(path.join(frontendDistPath, "index.html"));
 });
 // --------------------------------------------------------
 
 export default app;
+
