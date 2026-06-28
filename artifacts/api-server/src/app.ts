@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import path from "path"; // 🟢 1. MOVED TO THE TOP HERE
+import path from "path"; 
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -15,7 +15,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: req.url?.split("?")[0],
+          url: req.url?.split("?"),
         };
       },
       res(res) {
@@ -26,10 +26,11 @@ app.use(
     },
   }),
 );
-// 🟢 1. PRODUCTION-SAFE CORS WITH CREDENTIALS ENABLED
+
+// 🟢 1. SECURE CORS CONFIGURATION
 app.use(
   cors({
-    origin: "https://onrender.com",
+    origin: "https://arete-adbw.onrender.com",
     credentials: true,
   })
 );
@@ -62,4 +63,3 @@ app.get("*", (req, res, next) => {
 // --------------------------------------------------------
 
 export default app;
-
