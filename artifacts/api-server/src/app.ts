@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path"; 
+import { fileURLToPath } from "url"; // 🟢 Added for ES Module path safety
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -27,10 +28,9 @@ app.use(
   }),
 );
 
-// 🟢 1. SECURE CORS CONFIGURATION
 app.use(
   cors({
-    origin: "https://arete-adbw.onrender.com",
+    origin: "https://onrender.com",
     credentials: true,
   })
 );
@@ -38,22 +38,19 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🟢 2. LIGHTWEIGHT CRON PING ENDPOINT
 app.get("/api/ping", (req, res) => {
   res.status(200).send("pong");
 });
 
-// 🟢 3. CORE API ROUTER
 app.use("/api", router);
 
-// --- SERVE VITE FRONTEND (EXPRESS 5 COMPATIBLE STRUCTURING) ---
-const __dirname = path.resolve();
-const frontendDistPath = path.join(__dirname, "../arete/dist");
+// --- SERVE VITE FRONTEND (ES MODULE & EXPRESS 5 SAFE) ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.join(__dirname, "../../arete/dist");
 
-// Serve the static build assets (JS, CSS, images) FIRST
 app.use(express.static(frontendDistPath));
 
-// 🟢 4. EXPRESS 5 STANDARD CATCH-ALL FOR WEB PAGES ONLY
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
