@@ -65,7 +65,7 @@ type AuthState = {
   isAuthenticated: boolean;
   isLoading: boolean;
   walletDetected: boolean;
-  signIn: () => Promise<void>;
+  signIn: () => Promise<boolean>;
   signOut: () => Promise<void>;
   error: string | null;
 };
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "No Solana wallet detected. Open this page inside Phantom's browser, or install the Phantom / Solflare extension.",
         );
         setIsLoading(false);
-        return;
+        return false;
       }
 
       const { publicKey } = await provider.connect();
@@ -165,9 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setWallet(data.wallet);
       setWalletDetected(true);
       queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+      return true;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Sign in failed";
       setError(msg);
+      return false;
     } finally {
       setIsLoading(false);
     }
