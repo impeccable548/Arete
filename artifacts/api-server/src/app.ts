@@ -30,7 +30,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "https://onrender.com",
+    origin: "https://arete-adbw.onrender.com",   // was: "https://onrender.com"
     credentials: true,
   })
 );
