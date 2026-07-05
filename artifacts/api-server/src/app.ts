@@ -30,7 +30,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "https://arete-adbw.onrender.com",   // was: "https://onrender.com"
+    origin: "https://arete-adbw.onrender.com",
     credentials: true,
   })
 );
@@ -51,7 +51,7 @@ const frontendDistPath = path.join(__dirname, "../../arete/dist");
 
 app.use(express.static(frontendDistPath));
 
-app.get("/*splat", (req, res, next) => {   // was: app.get("*", ...)
+app.get("/*splat", (req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
   }
