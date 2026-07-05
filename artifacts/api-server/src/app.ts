@@ -51,7 +51,7 @@ const frontendDistPath = path.join(__dirname, "../../arete/dist");
 
 app.use(express.static(frontendDistPath));
 
-app.get("*", (req, res, next) => {
+app.get("/*splat", (req, res, next) => {   // was: app.get("*", ...)
   if (req.path.startsWith("/api")) {
     return next();
   }
