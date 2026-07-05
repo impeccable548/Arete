@@ -112,6 +112,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init();
   }, []);
 
+  // Detect when the user switches accounts inside Phantom/Solflare itself.
+  // Without this, a stored session token stays valid even after the
+  // connected wallet changes, showing "Open App" for a different user.
+  useEffect(() => {
+    const provider = getProvider() as
+      | (SolanaProvider & {
+          on?: (event: string, cb: (publicKey: unknown) => void) => void;
+          removeListener?: (event: string, cb: (publicKey: unknown) => void) => void;
+        })
+      | null;
+    if (!provider?.on) return;
+
+    const handleAccountChanged = (newPublicKey: unknown) => {
+      const newPubkeyStr =
+        newPublicKey && typeof newPublicKey === "object" && "toBase58" in newPublicKey
+          ? (newPublicKey as { toBase58: () => string }).toBase58()
+          : null;
+
+      setWallet((currentWallet) => {
+        if (newPubkeyStr !== currentWallet) {
+          clearToken();
+          queryClient.clear();
+          return null;
+        }
+        return currentWallet;
+      });
+    };
+
+    provider.on("accountChanged", handleAccountChanged);
+    return () => {
+      provider.removeListener?.("accountChanged", handleAccountChanged);
+    };
+  }, [queryClient]);
+
   const signIn = useCallback(async () => {
     setError(null);
     setIsLoading(true);
