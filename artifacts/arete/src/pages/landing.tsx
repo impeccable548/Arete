@@ -20,8 +20,8 @@ function Nav() {
     if (isAuthenticated) {
       navigate("/dashboard");
     } else {
-      await signIn();
-      navigate("/dashboard");
+      const success = await signIn();
+      if (success) navigate("/dashboard");
     }
   };
 
@@ -140,7 +140,6 @@ const steps = [
     desc: "Share the QR code or link. When the client pays, Arete detects it on Solana devnet and marks the invoice as paid.",
   },
 ];
-
 // App preview mock — mimics the dashboard UI
 function AppPreview() {
   return (
@@ -232,8 +231,8 @@ export default function Landing() {
     if (isAuthenticated) {
       navigate("/dashboard");
     } else {
-      await signIn();
-      navigate("/dashboard");
+      const success = await signIn();
+      if (success) navigate("/dashboard");
     }
   };
 
@@ -292,7 +291,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* ── Features ── */}
       <section id="features" className="py-32 border-t border-border">
         <div className="max-w-6xl mx-auto px-6">
